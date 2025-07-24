@@ -9,79 +9,260 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter COLMENA',
+      title: 'DISTORTED HIVE',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        fontFamily: 'Roboto',
       ),
-      home: MyTablero(),
+      home: HiveBoard(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyTablero extends StatefulWidget {
+class HiveBoard extends StatefulWidget {
   @override
-  _MyTableroState createState() => _MyTableroState();
+  _HiveBoardState createState() => _HiveBoardState();
 }
 
-class _MyTableroState extends State<MyTablero> {
+class _HiveBoardState extends State<HiveBoard> {
   final List<IconData> _icons = [
     Icons.bug_report,
     Icons.emoji_nature,
-    Icons.pest_control,
-    Icons.favorite, // Ícono de un corazón
+    Icons.favorite,
+    Icons.star,
   ];
-  List<bool> _flippedStates = List.generate(25, (index) => false);
-  int _points = 7; // Inicializar el contador de puntos en 7
-  bool _gameOver = false; // Bandera para indicar el estado de juego terminado
+
+  List<bool> _flippedStates = List.generate(25, (_) => false);
+  int _points = 7;
+  bool _gameOver = false;
+  String _message = '';
+  late List<IconData> _assignedIcons;
 
   @override
   void initState() {
     super.initState();
-    _shuffleIcons(); // Barajar los íconos al cargar inicialmente
+    _assignIcons();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showInstructionsModal());
+  }
+
+  void _assignIcons() {
+    final random = Random();
+    _assignedIcons = List.generate(25, (_) => _icons[random.nextInt(_icons.length)]);
+  }
+
+  void _flipCell(int index) {
+    if (_flippedStates[index]) return;
+
+    setState(() {
+      _flippedStates[index] = true;
+      final icon = _assignedIcons[index];
+      _updatePoints(icon);
+
+      if (_flippedStates.every((flipped) => flipped)) {
+        if (_points > 0 && !_gameOver) {
+          _gameOver = true;
+          _message = '🐝 Silent Victory! You survived the hive... but at what cost?';
+          _showGameOverModal();
+        }
+      }
+    });
+  }
+
+  void _updatePoints(IconData icon) {
+    if (_gameOver) return;
+
+    if (icon == Icons.bug_report) {
+      _points -= 2;
+    } else if (icon == Icons.emoji_nature) {
+      _points -= 1;
+    } else if (icon == Icons.favorite) {
+      _points += 2;
+    } else if (icon == Icons.star) {
+      _points += 1;
+    }
+
+    if (_points <= 0) {
+      _points = 0;
+      _gameOver = true;
+      _message = '🐝 The hive consumed you.';
+      _showGameOverModal();
+    } else if (_points >= 15) {
+      _points = 15;
+      _gameOver = true;
+      _message = '👑 You ruled the hive.';
+      _showGameOverModal();
+    }
+  }
+
+  void _restartGame() {
+    setState(() {
+      _flippedStates = List.generate(25, (_) => false);
+      _points = 7;
+      _gameOver = false;
+      _message = '';
+      _assignIcons();
+    });
+    _showInstructionsModal();
+  }
+
+  void _showInstructionsModal() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.grey[900],
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('🧠 How to play DISTORTED HIVE?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber)),
+                SizedBox(height: 16),
+                Text(
+                  '''• You start with 7 points.
+• Each cell hides a symbol that can change your score:
+
+   🐞 Bug: -2 pts  
+   🌿 Nature: -1 pt  
+   ❤️ Heart: +2 pts  
+   ⭐ Star: +1 pt
+
+• Reach 15 points to win.
+• Drop to 0 points and lose.
+• If you survive flipping all cells... the hive hasn’t defeated you — but it hasn’t crowned you either.''',
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                ),
+                SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
+                    child: Text('Got it', style: TextStyle(color: Colors.black)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showGameOverModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.black87,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 25),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _message.contains('ruled') ? Icons.emoji_events : Icons.error_outline,
+                size: 60,
+                color: _message.contains('ruled') ? Colors.amber : Colors.redAccent,
+              ),
+              SizedBox(height: 15),
+              Text(
+                _message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: _message.contains('ruled') ? Colors.amber : Colors.redAccent,
+                ),
+              ),
+              SizedBox(height: 25),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _restartGame();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber[700],
+                  padding: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text('Play Again', style: TextStyle(fontSize: 18, color: Colors.black)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('COLMENA'),
+        backgroundColor: Colors.black,
+        title: Text('DISTORTED HIVE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.info_outline, color: Colors.amber),
+            tooltip: 'Instructions',
+            onPressed: _showInstructionsModal,
+          ),
+        ],
       ),
       body: Column(
         children: [
           SizedBox(height: 20),
           Text(
-            'Puntos: $_points',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            'Points: $_points',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           Expanded(
             child: GridView.builder(
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.all(16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 5,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                childAspectRatio: 1,
               ),
               itemCount: 25,
-              itemBuilder: (BuildContext context, int index) {
+              itemBuilder: (context, index) {
+                final flipped = _flippedStates[index];
+                final icon = _assignedIcons[index];
+                final baseColor = flipped ? Colors.grey[850] : Colors.amber[700];
+                final iconColor = icon == Icons.bug_report
+                    ? Colors.redAccent
+                    : icon == Icons.emoji_nature
+                        ? Colors.greenAccent
+                        : icon == Icons.favorite
+                            ? Colors.pinkAccent
+                            : Colors.cyanAccent;
+
                 return GestureDetector(
-                  onTap: _gameOver ? null : () {
-                    _flipCell(index);
-                    _updatePoints(_icons[index % _icons.length]);
-                  },
+                  onTap: _gameOver || flipped ? null : () => _flipCell(index),
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 300),
                     decoration: BoxDecoration(
-                      color: _flippedStates[index] ? Colors.grey[300] : Colors.blueAccent,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.black),
+                      color: baseColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.amber, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: Offset(2, 2),
+                        ),
+                      ],
                     ),
                     child: Center(
-                      child: _flippedStates[index]
-                          ? Icon(_icons[index % _icons.length], size: 40, color: Colors.green)
-                          : null,
+                      child: flipped
+                          ? Icon(icon, size: 36, color: iconColor)
+                          : Icon(Icons.hexagon, size: 28, color: Colors.black),
                     ),
                   ),
                 );
@@ -89,52 +270,16 @@ class _MyTableroState extends State<MyTablero> {
             ),
           ),
           ElevatedButton(
-            onPressed: _gameOver ? _restartGame : _shuffleIcons, // Desactivar el botón de revolver durante el juego terminado
-            child: Text(_gameOver ? 'Reiniciar Juego' : 'Revolver Iconos', style: TextStyle(fontSize: 18)),
+            onPressed: _restartGame,
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              backgroundColor: Colors.amber[700],
+            ),
+            child: Text('Restart', style: TextStyle(fontSize: 18, color: Colors.black)),
           ),
           SizedBox(height: 20),
-          Visibility(
-            visible: _gameOver,
-            child: Text(
-              '¡Juego Terminado!',
-              style: TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold),
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  void _flipCell(int index) {
-    setState(() {
-      _flippedStates[index] = !_flippedStates[index];
-    });
-  }
-
-  void _shuffleIcons() {
-    setState(() {
-      _icons.shuffle();
-    });
-  }
-
-  void _updatePoints(IconData icon) {
-    if (icon == Icons.bug_report) {
-      _points -= 2; // Restar 2 puntos si se toca la celda con el ícono "bug_report"
-    } else if (icon == Icons.emoji_nature) {
-      _points -= 1; // Restar 1 punto si se toca la celda con el ícono "emoji_nature"
-    }
-    if (_points <= 0) { // Comprobar si el juego termina con 0 o menos puntos
-      _points = 0;
-      _gameOver = true;
-    }
-  }
-
-  void _restartGame() {
-    setState(() {
-      _flippedStates = List.generate(25, (index) => false);
-      _points = 7;
-      _gameOver = false;
-      _shuffleIcons(); // Barajar iconos al reiniciar
-    });
   }
 }
