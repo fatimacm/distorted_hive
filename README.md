@@ -1,70 +1,64 @@
-# 🐝 Distorted Hive – Strategic Flutter Game
+# 🐝 Distorted Hive – Flutter Microgame of Uncertainty
 
-**Distorted Hive** is a simple, interactive microgame developed in Flutter. Each cell on the board hides an icon that affects your score.  
-Flip cells, manage your points, and try to control the hive.
-
-
----
-
-## 🎯 Game Objective
-
-You start with **7 points**.
-
-Each cell hides an icon that will affect your score once flipped:
-
-| Icon           | Meaning                    | Points Effect   |
-|----------------|----------------------------|-----------------|
-| 🐞 Bug (`bug_report`)   | Hive infection               | −2 points       |
-| 🌿 Nature (`emoji_nature`) | Environmental interference    | −1 point        |
-| ❤️ Heart (`favorite`)   | Care and regeneration        | +2 points       |
-| ⭐ Star (`star`)         | Inner boost                  | +1 point        |
-
-The game ends when:
-
-- Your points reach **0** → _The hive consumed you._
-- Your points reach **15** → _You ruled the hive._
+**Distorted Hive** is a minimal, turn-based microgame built with Flutter.  
+The player interacts with a hidden set of predefined values, presented as icons across a limited grid.  
+Outcomes vary depending on chance, sequencing, and resource management.
 
 ---
 
-## 🧠 Game Mechanics
+## 🎯 Objective
 
-- 5x5 grid board (25 cells total)  
-- Each cell can be flipped **only once**  
-- Icons are randomly assigned at the start of each game  
-- The "Restart" button resets the board, icons, and points  
-- If you flip all cells without reaching 0 or 15 points, you get a **Silent Victory**
+You start with **7 points**.  
+Your goal is to explore the full grid while preserving your score.  
+Each icon reveals a different effect. No pattern is guaranteed.
+
+| Icon           | Description                 | Points Effect   |
+|----------------|-----------------------------|-----------------|
+| 🐞 Bug          | Local corruption             | −2 points       |
+| 🌿 Nature       | Environmental resistance     | −1 point        |
+| ❤️ Heart        | Stabilizing input            | +2 points       |
+| ⭐ Star         | Internal modifier            | +1 point        |
 
 ---
 
-## ✨ Technologies Used
+## 🔁 End States
 
-- **Flutter** (cross-platform SDK)  
-- **Dart** as the main programming language  
-- Utilizes `StatefulWidget`, `GridView`, animations, and state management  
+- **0 points** → Game over  
+- **15 points** → Game completed  
+- **All cells flipped without reaching either** → Undefined outcome
+
+---
+
+## 🧠 Core Mechanics
+
+- 5x5 grid (25 unique cells)  
+- Each cell can be revealed only once  
+- Icons are assigned at random at the start of each game  
+- State is local and ephemeral  
+- No external input or persistent memory
+
+---
+
+## 🛠️ Tech Stack
+
+- **Flutter** (cross-platform UI toolkit)  
+- **Dart** (language)  
+- Components: `StatefulWidget`, `GridView`, local state, custom transitions  
 
 ---
 
 ## 🚀 How to Run Locally
 
-1. Make sure you have [Flutter SDK](https://flutter.dev/docs/get-started/install) installed.  
+1. Make sure you have [Flutter SDK](https://flutter.dev/docs/get-started/install) installed  
 2. Clone this repository:
 
-``` bash
-git clone git@github.com:fatimacm/distorted_hive.git
-cd distorted_hive
-```
-3. Install dependencies:
-``` bash
-flutter pub get
-```
-
-4. Run the project:
-
-``` bash
-flutter run
-```
-
-You can run on:
+   ```bash
+   git clone git@github.com:fatimacm/distorted_hive.git
+   cd distorted_hive
+   flutter pub get
+   flutter run
+   
+Supports:
 
 - Chrome (Web)
 
@@ -72,14 +66,10 @@ You can run on:
 
 - Android Emulator / Physical Device
 
+## 📌 Notes
+Distorted Hive is not deterministic. It does not rely on skill, pattern recognition, or strategy.
+It models uncertainty under constraint. All behavior is observable but not predictable. 
+No decisions are reversible. But every session resets the field.
 
-# 📚 Additional Notes
-
-This project was designed as a test of visual logic, interaction, and state control with Flutter.
-
-No internet connection or external dependencies required.
-
-Expandable with sounds, timer, new icons, and enemy/ally logic.
-
-# 👑 Author
-Developed by Fátima Coronado.
+## 🧾 Author
+Developed by Fátima Coronado Interface design, behavior modeling, and local state transitions.
